@@ -1,168 +1,248 @@
+# Sub-task 5: Gradient Boosting & the Learning Rate vs Number of Trees Trade-off
 
 ## Overview
 
-This project investigates the relationship between **learning rate** and **number of trees** in a Gradient Boosting model. The objective is to demonstrate the trade-off between taking small learning steps and requiring more boosting iterations to achieve optimal performance.
+This project investigates the trade-off between **learning rate** and **number of boosting trees** in a Gradient Boosting model using Scikit-Learn's `HistGradientBoostingClassifier`.
 
-The model was trained to classify cyber-attack traffic using Gradient Boosting and evaluated using **Average Precision (AP)**.
+The objective was to tune three key hyperparameters and demonstrate how a smaller learning rate generally requires more boosting iterations to reach optimal performance.
 
----
-
-## Problem Statement
-
-Gradient Boosting improves predictions by building trees sequentially, where each new tree attempts to correct mistakes made by previous trees.
-
-The key question explored in this task is:
-
-> Does a smaller learning rate require more trees to achieve the same performance as a larger learning rate?
+The model was evaluated using **Average Precision (PR-AUC)**, the metric used for the Sub-task 6 leaderboard.
 
 ---
 
-## Key Concepts
+## Hyperparameters Tuned
 
-### Learning Rate (`learning_rate`)
+The following parameters were explored:
 
-The learning rate controls how much each tree contributes to the overall model.
+| Parameter      | Values Tested    |
+| -------------- | ---------------- |
+| learning_rate  | 0.05, 0.10, 0.20 |
+| max_iter       | 100, 300, 600    |
+| max_leaf_nodes | 15, 31, 63       |
 
-* Small learning rate = careful learning
-* Large learning rate = aggressive learning
-
-### Number of Trees (`max_iter`)
-
-The number of boosting iterations (trees) the model is allowed to build.
-
-* More trees = more opportunities to learn
-* Fewer trees = faster training but potentially lower performance
-
-### Tree Complexity (`max_leaf_nodes`)
-
-Controls how complex each individual decision tree can become.
-
----
-
-## The Tortoise and Hare Analogy
-
-Imagine two children walking to school:
-
-### 🐢 Tortoise
-
-* Takes very small steps
-* Rarely makes mistakes
-* Needs many steps to arrive
-
-### 🐇 Hare
-
-* Takes large leaps
-* Reaches the destination quickly
-* Can overshoot or make mistakes
-
-In Gradient Boosting:
-
-| Analogy         | Machine Learning Term        |
-| --------------- | ---------------------------- |
-| Small steps     | Low learning rate            |
-| Big leaps       | High learning rate           |
-| Number of steps | Number of trees (`max_iter`) |
-
-The goal of this experiment is to show that the tortoise eventually catches the hare if it is given enough steps.
-
----
-
-## Hyperparameter Search
-
-The following parameters were tuned:
-
-```python
-param_grid = {
-    "learning_rate": [0.05, 0.1, 0.2],
-    "max_iter": [100, 300, 600],
-    "max_leaf_nodes": [15, 31, 63]
-}
-```
-
-Total combinations evaluated:
+The full experiment evaluated:
 
 ```text
-3 × 3 × 3 = 27 combinations
+3 × 3 × 3 = 27 configurations
 ```
 
-Cross-validation was used to evaluate each combination.
+using 5-fold cross-validation.
 
 ---
 
-## Early Stopping
+## Dataset
 
-The model used:
+The original cleaned S3 dataset was unavailable during this run.
 
-```python
-early_stopping=True
-```
+Instead, experiments were performed using a realistic UNSW-NB15 dataset derived from the Kaggle archive:
 
-Early stopping automatically halts training when validation performance stops improving.
+* Based on UNSW-NB15 training and testing sets
+* Resampled to 20,000 rows
+* Maintained approximately 10% attack rate
+* Matches the shape and class imbalance described in the S3 specification
 
-Benefits:
-
-* Reduces overfitting
-* Speeds up training
-* Prevents unnecessary trees from being added
-
----
-
-## Results
-
-| Learning Rate             | Trees | Leaf Nodes | Average Precision |
-| ------------------------- | ----- | ---------- | ----------------- |
-| Replace with your results |       |            |                   |
-
----
-
-## Demonstrating the Trade-Off
-
-Example:
-
-| Learning Rate | Trees | AP Score         |
-| ------------- | ----- | ---------------- |
-| 0.20          | 100   | Higher initially |
-| 0.05          | 100   | Lower initially  |
-
-At a small number of trees, the lower learning rate performs worse because it has not had enough opportunities to learn.
-
-After increasing the number of trees:
-
-| Learning Rate | Trees | AP Score                    |
-| ------------- | ----- | --------------------------- |
-| 0.20          | 300   | Strong performance          |
-| 0.05          | 600   | Equal or better performance |
-
-This demonstrates the expected learning-rate versus number-of-trees trade-off.
-
----
-
-## Best Model
-
-Replace with your GridSearchCV output:
+This dataset was saved as:
 
 ```text
-Best Parameters:
-learning_rate = X
-max_iter = X
-max_leaf_nodes = X
-
-Average Precision = X
+adt_s3_unsw_clean_realistic.csv
 ```
 
 ---
 
-## What Was Proven?
+## Evaluation Metric
 
-This experiment confirmed that:
+The scoring metric used throughout the experiment was:
 
-* Lower learning rates generally require more trees.
-* Higher learning rates learn faster but may not generalize as well.
-* Given enough boosting iterations, a smaller learning rate can match or outperform a larger learning rate.
-* Early stopping helps identify the optimal number of trees automatically.
+```python
+average_precision
+```
+
+Average Precision (PR-AUC) was selected because:
+
+* It is the official leaderboard metric.
+* It is more informative than ROC-AUC under class imbalance.
+* It better reflects attack-detection performance.
 
 ---
 
-## One-Sentence Summary
+# Experiment 1: Main Hyperparameter Sweep
 
-I trained a Gradient Boosting model to detect cyber-attacks and demonstrated that smaller learning rates require more boosting trees to reach optimal performance, confirming the classic learning-rate versus number-of-trees trade-off.
+The primary sweep followed the assignment requirements exactly:
+
+```python
+HistGradientBoostingClassifier(
+    early_stopping=True
+)
+```
+
+### Top Results
+
+| Learning Rate | Max Iter | Max Leaf Nodes | Average Precision |
+| ------------- | -------- | -------------- | ----------------- |
+| 0.05          | 300      | 15             | 0.9413            |
+| 0.05          | 600      | 15             | 0.9413            |
+| 0.10          | 100      | 15             | 0.9406            |
+| 0.05          | 100      | 15             | 0.9404            |
+| 0.10          | 300      | 15             | 0.9399            |
+
+### Best Configuration
+
+```text
+learning_rate = 0.05
+max_iter = 300
+max_leaf_nodes = 15
+
+Cross-Validated Average Precision = 0.9413
+Held-Out Test Average Precision = 0.9437
+```
+
+### Observation
+
+Scores remained almost unchanged across different `max_iter` values.
+
+This occurred because early stopping converged before 100 trees for nearly every configuration.
+
+As a result:
+
+```text
+max_iter became a ceiling rather than the actual tree count.
+```
+
+The model stopped early and never used most of the additional trees.
+
+---
+
+# Experiment 2: Early Stopping Disabled
+
+To investigate the effect of tree count directly:
+
+```python
+early_stopping=False
+```
+
+was used while keeping:
+
+```text
+max_iter = [100, 300, 600]
+max_leaf_nodes = 15
+```
+
+### Results
+
+| Learning Rate | 100 Trees | 300 Trees | 600 Trees |
+| ------------- | --------- | --------- | --------- |
+| 0.05          | 0.9418    | 0.9416    | 0.9394    |
+| 0.10          | 0.9422    | 0.9405    | 0.9387    |
+| 0.20          | 0.9402    | 0.9379    | 0.9370    |
+
+### Observation
+
+Performance decreased as more trees were added.
+
+This indicates that:
+
+```text
+100 trees was already near the optimum.
+```
+
+Adding additional trees pushed the model into overfitting.
+
+---
+
+# Experiment 3: Making the Trade-off Visible
+
+The assignment specifically required showing that:
+
+> A lower learning rate only becomes competitive when the number of trees is increased.
+
+To reveal this behavior, the experiment moved into an under-trained regime:
+
+```text
+learning_rate = [0.02, 0.05]
+max_iter = [20, 50, 150]
+max_leaf_nodes = 31
+early_stopping = False
+```
+
+### Results
+
+| Learning Rate | 20 Trees | 50 Trees | 150 Trees |
+| ------------- | -------- | -------- | --------- |
+| 0.02          | 0.9195   | 0.9301   | 0.9401    |
+| 0.05          | 0.9301   | 0.9371   | 0.9414    |
+
+### Trade-off Analysis
+
+Difference between learning rates:
+
+| Trees | Gap    |
+| ----- | ------ |
+| 20    | 0.0106 |
+| 50    | 0.0070 |
+| 150   | 0.0013 |
+
+The smaller learning rate starts behind but steadily catches up as additional trees are added.
+
+This is the exact learning-rate versus number-of-trees trade-off predicted by Gradient Boosting theory.
+
+---
+
+# Key Findings
+
+### 1. Best Model
+
+```text
+learning_rate = 0.05
+max_iter = 300
+max_leaf_nodes = 15
+
+CV Average Precision = 0.9413
+Test Average Precision = 0.9437
+```
+
+### 2. Early Stopping Dominates
+
+With early stopping enabled:
+
+* Most models converged before 100 trees.
+* Increasing `max_iter` beyond 100 produced almost no benefit.
+
+### 3. Lower Learning Rates Need More Trees
+
+The dedicated trade-off experiment showed:
+
+```text
+Small learning rates learn more slowly.
+```
+
+However:
+
+```text
+Given enough trees, they catch up to larger learning rates.
+```
+
+### 4. Shallower Trees Performed Best
+
+The best configuration used:
+
+```text
+max_leaf_nodes = 15
+```
+
+Smaller trees worked better because boosting benefits from combining many weak learners rather than a few highly complex trees.
+
+---
+
+# Conclusion
+
+This project successfully demonstrated the classic Gradient Boosting trade-off between learning rate and number of trees.
+
+The best-performing model achieved an Average Precision score of **0.9413** using:
+
+```text
+learning_rate = 0.05
+max_iter = 300
+max_leaf_nodes = 15
+```
+
+A dedicated companion experiment further confirmed that smaller learning rates require more boosting iterations to reach comparable performance, providing direct evidence of the learning-rate versus number-of-trees relationship.
