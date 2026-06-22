@@ -1,4 +1,4 @@
-# Sub-task 5: Gradient Boosting & the Learning Rate vs Number of Trees Trade-off
+ Gradient Boosting & the Learning Rate vs Number of Trees Trade-off
 
 ## Overview
 
