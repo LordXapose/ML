@@ -32,8 +32,6 @@ using 5-fold cross-validation.
 
 ## Dataset
 
-The original cleaned S3 dataset was unavailable during this run.
-
 Instead, experiments were performed using a realistic UNSW-NB15 dataset derived from the Kaggle archive:
 
 * Based on UNSW-NB15 training and testing sets
