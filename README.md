@@ -233,6 +233,20 @@ Smaller trees worked better because boosting benefits from combining many weak l
 
 # Conclusion
 
+Prove the trade-off: **small learning rate (tortoise)** needs **more trees (steps)** to catch up to the **fast learner (hare)**.
+
+**The Setup**  
+- 20k rows, 10% attack rate.  
+- Scoring = Average Precision (handles imbalance).  
+- Trees kept simple (`max_leaf_nodes=15`) to avoid overcomplicating each step.
+
+**The 3 Runs in 3 Bullets**  
+1. **Main sweep (early stopping ON)**: Best score = **0.941**. Trade-off *hidden* because early stopping cut trees too soon.  
+2. **Forced 100–600 trees (early stopping OFF)**: Scores *dropped* → too many trees caused overfitting.  
+3. **Lowered range 20–150 trees**: Tortoise (lr=0.02) starts behind Hare (lr=0.05), but **catches up** at 150 trees (gap shrinks from 0.010 to 0.001). **Trade-off proven.**
+
+**The Final Takeaway**  
+The trade-off exists, just at a **smaller tree scale** than the brief's example suggested. Slow-and-steady wins when given enough steps.
 This project successfully demonstrated the classic Gradient Boosting trade-off between learning rate and number of trees.
 
 The best-performing model achieved an Average Precision score of **0.9413** using:
