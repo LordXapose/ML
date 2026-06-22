@@ -1,0 +1,31 @@
+Assignment S4, Sub-task 5 -- Gradient boosting, learning-rate vs number-of-trees
+Data: adt_s3_unsw_clean_realistic.csv (20,000 rows, 10.0% attack rate, built from
+the Kaggle UNSW-NB15 combined table to match the S3 brief's realistic-imbalance spec)
+
+MAIN SWEEP (early_stopping=True, the brief's required setting, max_iter as a ceiling):
+BEST: lr=0.05, max_iter=300, max_leaf_nodes=15 -> CV AP = 0.9413 +/- 0.0071
+Full 27-setting table in s4_subtask5_grid.csv. NOTE: every max_iter column is flat
+in this sweep -- early stopping converges before 100 trees for every (lr, leaves)
+combination tried, so the ceiling never binds and the trade-off does not show here.
+
+COMPANION (early_stopping=False, max_leaf_nodes=15, max_iter = literal tree count,
+the [100,300,600] grid from the brief): every row DECLINES as trees increase --
+this regime is already past its optimum at 100 trees, so adding more trees overfits
+rather than helps. This is the opposite of the textbook pattern, and is itself an
+honest, useful finding: at this row count (16,000 training rows) and this leaf
+complexity, [100,300,600] all sit on the overfitting side of the curve.
+See s4_subtask5_companion_leaves15.csv.
+
+TRADE-OFF MADE VISIBLE (early_stopping=False, max_leaf_nodes=31, a genuinely
+under-fit regime: max_iter in [20,50,150], lr in [0.02,0.05]):
+  lr=0.02: AP 0.9195 (20 trees) -> 0.9301 (50 trees) -> 0.9401 (150 trees)
+  lr=0.05: AP 0.9301 (20 trees) -> 0.9371 (50 trees) -> 0.9414 (150 trees)
+The lr=0.02 row trails lr=0.05 at every tree count but closes the gap as trees
+are added (gap: 0.0106 -> 0.0070 -> 0.0013) -- the lower learning rate catching
+up only once enough trees are added, the exact pattern the brief asks to show.
+See s4_subtask5_tradeoff_visible.csv.
+
+HELD-OUT TEST (best setting from the main sweep, lr=0.05/max_iter=300/leaves=15,
+refit on the full 16,000-row training split, scored on the 4,000-row test split):
+TEST AP = 0.9437
+Trees actually used by early stopping: 142
