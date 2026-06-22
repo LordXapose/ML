@@ -101,6 +101,7 @@ Scores remained almost unchanged across different `max_iter` values.
 This occurred because early stopping converged before 100 trees for nearly every configuration.
 
 As a result:
+It stopped very early. It got a 94% score, but you couldn't see the Tortoise catching up because the computer quit too soon.
 
 ```text
 max_iter became a ceiling rather than the actual tree count.
@@ -136,6 +137,7 @@ max_leaf_nodes = 15
 ### Observation
 
 Performance decreased as more trees were added.
+Scores got worse because it was overthinking and memorizing the practice data. Too many steps hurt the fast learner
 
 This indicates that:
 
@@ -180,6 +182,7 @@ Difference between learning rates:
 | 150   | 0.0013 |
 
 The smaller learning rate starts behind but steadily catches up as additional trees are added.
+ Finally! The Tortoise starts way behind, but by 150 steps, it has almost caught up to the Hare.
 
 This is the exact learning-rate versus number-of-trees trade-off predicted by Gradient Boosting theory.
 
